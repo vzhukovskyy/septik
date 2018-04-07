@@ -1,0 +1,130 @@
+<html>
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id="cpu"></div>
+    <div id="mem"></div>
+        
+    <script>
+        function extendChart(div, x, y) {
+            Plotly.extendTraces(div, {
+                x: [[x]],
+                y: [[y]]
+            }, [0], 60);
+        }
+
+        function createChart(div, title, stat) {
+            timestamp = stat.date;
+            timestamp -= 59*1000;
+
+            x = Array(60)
+            y = Array(60)
+            for(var i=0 ; i<60; i++) {
+                x[i] = new Date(timestamp+i*1000);
+                y[i] = null;
+            }
+            var data = [{
+                x: x,
+                y: y,
+                mode: 'lines',
+                line: {color: '#80CAF6'}
+            }];
+
+            var layout = {
+                title: title,
+                yaxis: { range: [0, 100] },
+                xaxis: { tickmode: 'linear', tick0: new Date(timestamp), dtick: 10*1000 }
+            };
+
+            Plotly.plot(div, data, layout);
+        }
+
+        var chartsCreated = false;
+
+        function nextStatReceived(requestId, stat) {
+            console.log('Processing request '+requestId+', stat '+stat.toSource());
+
+            if(!chartsCreated) {
+                if(stat.cpu != null && stat.mem != null) {
+                    createChart('cpu', 'CPU', stat);
+                    createChart('mem', 'Memory', stat);
+                    chartsCreated = true;
+                }
+            }
+
+            if(chartsCreated) {
+                extendChart('cpu', stat.date, stat.cpu);
+                extendChart('mem', stat.date, stat.mem);
+            }
+        }
+
+        var lastProcessedRequestId = 0;
+        var receivedUnorderedStats = {};
+
+        function statReceived(requestId, stat) {
+            // console.log('stat received '+stat.toSource()+', request '+requestId);
+            // nextStatReceived(requestId, stat);
+            // return;
+
+            receivedUnorderedStats[requestId] = stat;
+
+            while(requestId == lastProcessedRequestId+1) {
+                stat = receivedUnorderedStats[requestId];
+                nextStatReceived(requestId, stat);
+                delete receivedUnorderedStats[requestId];
+
+                lastProcessedRequestId++;
+                if(requestId+1 in receivedUnorderedStats) {
+                    requestId++;
+                }
+            }
+        }
+
+        function emptyStat(date) {
+            return {date: date, cpu: null, mem: null};
+        }
+
+        function parseStat(date, response) {
+            var stat = JSON.parse(response);
+            stat.date = date;
+            return stat;
+        }
+
+        var sentRequestId = 0;
+
+        function sendHttpGet() {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", window.location.href+'stat');
+            xmlHttp.onload = function(e) {           
+                console.log("Response to request "+this.requestId+" received at "+new Date()+", status="+this.status);
+                //do not use date from JSON because STB may suddenly change its date which spoils chart
+                //stat.date = new Date(stat.date);                
+
+                var stat;
+                if(this.status == 200) {
+                    stat = parseStat(this.requestDate, this.response);
+                }
+                else {
+                    stat = emptyStat(this.requestDate);
+                }
+                statReceived(this.requestId, stat);
+            }
+            xmlHttp.onerror = function(e) {
+                console.log("ERROR for request "+this.requestId+" received at "+new Date());
+                stat = emptyStat(this.requestDate);
+                statReceived(this.requestId, stat);
+            }
+            xmlHttp.requestId = ++sentRequestId;
+            xmlHttp.requestDate = new Date();
+            xmlHttp.send(null);
+            console.log("HTTP GET request "+sentRequestId+" sent at "+new Date());
+        }
+
+        var interval = setInterval(function() {
+            sendHttpGet();
+        }, 1000);
+
+    </script>
+</body>
+</html>
