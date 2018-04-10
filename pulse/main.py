@@ -1,26 +1,28 @@
 import sys
 import threading
 
-from statistics_collector import StatisticsCollector
-from  statistics_logger import StatisticsLogger
+from data_puller import DataPuller
+from data_logger import DataLogger
 import http_server
+
 
 def main(port):
     sys.stdout.write('Starting HTTP server at port %d ...' % port)
     sys.stdout.flush()
 
-    statistics_collector = StatisticsCollector()
-    statistics_collector.start()
+    puller = DataPuller()
+    puller.start()
 
-    statistics_logger = StatisticsLogger()
-    statistics_logger.start()
+    logger = DataLogger()
+    logger.start()
 
-    print threading.currentThread(),'main',threading.activeCount()
+    print(threading.currentThread(),'main',threading.activeCount())
 
     http_server.run_http_server(port)
 
-    statistics_logger.stop()
-    statistics_collector.stop()   
+    logger.stop()
+    puller.stop()
+
 
 if __name__ == "__main__":
     port = int(sys.argv[1])

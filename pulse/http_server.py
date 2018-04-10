@@ -1,7 +1,9 @@
-import BaseHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from utils import jsonify
+from latest_data import latestData
 
-class RESTRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+class RESTRequestHandler(BaseHTTPRequestHandler):
     #hack: overridden to avoid extreme sluggishness caused by FQDN lookup
     #https://stackoverflow.com/a/5273870
     def address_string(self):
@@ -10,7 +12,7 @@ class RESTRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return host
 
     def do_GET(self):
-        print "Request handler", self.path
+        print("Request handler", self.path)
         if self.path == '/':
             self.return_html()
         elif self.path == '/stat' or self.path == '/stat/':
@@ -23,29 +25,30 @@ class RESTRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f = open('index.html')
         content = f.read()
         #print content
-        print 'Returned index.html'
-        self.wfile.write(content)
+        print('Returned index.html')
+        self.wfile.write(content.encode('utf-8'))
         f.close()
 
     def return_json(self):
-        stat = statistics.get()
-        if stat is None:
+        data = latestData.get()
+        if data is None:
             self.send_response(503)
             self.end_headers()
         else:
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()   
-            json = jsonify(stat)
-            self.wfile.write(json)
+            json = jsonify(data)
+            self.wfile.write(json.encode('utf-8'))
+
 
 def run_http_server(port):
-    http_server = BaseHTTPServer.HTTPServer(('', port), RESTRequestHandler)
-    print ' done.'
+    http_server = HTTPServer(('', port), RESTRequestHandler)
+    print(' done.')
     try:
         http_server.serve_forever()
     except KeyboardInterrupt:
         pass
-    print 'Stopping HTTP server'
+    print('Stopping HTTP server')
     http_server.server_close()
 

@@ -1,18 +1,23 @@
-class SharedStatistics:
+import threading
+
+
+class LatestData:
     def __init__(self):
-        self._statistics = None
+        self._data = None
         self._lock = threading.Lock()
 
     def get(self):
         self._lock.acquire()
-        if self._statistics is None:
+        if self._data is None:
             s = None
         else:
-            s = dict(self._statistics)
+            s = dict(self._data)
         self._lock.release()
         return s
     
     def set(self, s):
         self._lock.acquire()
-        self._statistics = s
+        self._data = s
         self._lock.release()
+
+latestData = LatestData()

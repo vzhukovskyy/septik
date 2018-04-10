@@ -3,9 +3,10 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-    <div id="cpu"></div>
-    <div id="mem"></div>
-        
+    <div id="cpu_temperature"></div>
+    <div id="outside_temperature"></div>
+    <div id="level"></div>
+
     <script>
         function extendChart(div, x, y) {
             Plotly.extendTraces(div, {
@@ -14,8 +15,8 @@
             }, [0], 60);
         }
 
-        function createChart(div, title, stat) {
-            timestamp = stat.date;
+        function createChart(div, title, data) {
+            timestamp = data.time;
             timestamp -= 59*1000;
 
             x = Array(60)
@@ -42,36 +43,39 @@
 
         var chartsCreated = false;
 
-        function nextStatReceived(requestId, stat) {
-            console.log('Processing request '+requestId+', stat '+stat.toSource());
+        function nextDataReceived(requestId, data) {
+            console.log('Processing request '+requestId+', data '+data.toSource());
 
             if(!chartsCreated) {
-                if(stat.cpu != null && stat.mem != null) {
-                    createChart('cpu', 'CPU', stat);
-                    createChart('mem', 'Memory', stat);
+                if(data.cpu_temperature != null && data.outside_temperature != null && data.level != null) {
+                    createChart('cpu_temperature', 'CPU temperature', data);
+                    createChart('outside_temperature', 'Outside temperature', data);
+                    createChart('level', 'Level', data);
                     chartsCreated = true;
                 }
             }
 
             if(chartsCreated) {
-                extendChart('cpu', stat.date, stat.cpu);
-                extendChart('mem', stat.date, stat.mem);
+                extendChart('cpu_temperature', data.time, data.cpu_temperature);
+                extendChart('outside_temperature', data.time, data.outside_temperature);
+                extendChart('level', data.time, data.level);
             }
         }
 
         var lastProcessedRequestId = 0;
         var receivedUnorderedStats = {};
 
-        function statReceived(requestId, stat) {
-            // console.log('stat received '+stat.toSource()+', request '+requestId);
-            // nextStatReceived(requestId, stat);
+        function dataReceived(requestId, data) {
+            // if packets do not come in order, this will not work
+            // console.log('data received '+data.toSource()+', request '+requestId);
+            // nextDataReceived(requestId, data);
             // return;
 
-            receivedUnorderedStats[requestId] = stat;
+            receivedUnorderedStats[requestId] = data;
 
             while(requestId == lastProcessedRequestId+1) {
-                stat = receivedUnorderedStats[requestId];
-                nextStatReceived(requestId, stat);
+                data = receivedUnorderedStats[requestId];
+                nextDataReceived(requestId, data);
                 delete receivedUnorderedStats[requestId];
 
                 lastProcessedRequestId++;
@@ -81,14 +85,14 @@
             }
         }
 
-        function emptyStat(date) {
-            return {date: date, cpu: null, mem: null};
+        function emptyData(time) {
+            return {time: time, cpu_temperature: null, outside_temperature: null, pressure: null, humidity: null, flow: null, level: null};
         }
 
-        function parseStat(date, response) {
-            var stat = JSON.parse(response);
-            stat.date = date;
-            return stat;
+        function parseData(time, response) {
+            var data = JSON.parse(response);
+            data.time = time;
+            return data;
         }
 
         var sentRequestId = 0;
@@ -98,22 +102,20 @@
             xmlHttp.open("GET", window.location.href+'stat');
             xmlHttp.onload = function(e) {           
                 console.log("Response to request "+this.requestId+" received at "+new Date()+", status="+this.status);
-                //do not use date from JSON because STB may suddenly change its date which spoils chart
-                //stat.date = new Date(stat.date);                
 
-                var stat;
+                var data;
                 if(this.status == 200) {
-                    stat = parseStat(this.requestDate, this.response);
+                    data = parseData(this.requestDate, this.response);
                 }
                 else {
-                    stat = emptyStat(this.requestDate);
+                    data = emptyData(this.requestDate);
                 }
-                statReceived(this.requestId, stat);
+                dataReceived(this.requestId, data);
             }
             xmlHttp.onerror = function(e) {
                 console.log("ERROR for request "+this.requestId+" received at "+new Date());
-                stat = emptyStat(this.requestDate);
-                statReceived(this.requestId, stat);
+                data = emptyData(this.requestDate);
+                dataReceived(this.requestId, data);
             }
             xmlHttp.requestId = ++sentRequestId;
             xmlHttp.requestDate = new Date();

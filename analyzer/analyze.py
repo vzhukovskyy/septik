@@ -69,8 +69,8 @@ def reduce(data, index, n):
     return reduced_data, reduced_index
 
 start = time.time()
-data = pandas.read_csv("../data/sensors.csv", delimiter=",", low_memory=True, parse_dates=['time'])
-#data = pandas.read_csv("../data/sensors.csv", delimiter=",", low_memory=True, parse_dates=['time'], skiprows=lambda r: 0<r<3000000, nrows=100000)
+data = pandas.read_csv("../data/hardware.csv", delimiter=",", low_memory=True, parse_dates=['time'])
+#data = pandas.read_csv("../data/hardware.csv", delimiter=",", low_memory=True, parse_dates=['time'], skiprows=lambda r: 0<r<3000000, nrows=100000)
 end = time.time()
 print('pandas',pandas.__version__,'read',len(data),'lines in',end-start)
 
