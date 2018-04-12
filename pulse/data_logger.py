@@ -1,11 +1,11 @@
 import threading
-from csv_file import CsvFile
 from latest_data import latestData
+from db import Db
 
 
 class DataLogger:
     def __init__(self):
-        self.csv_file = CsvFile('pulse.csv')
+        self.db = Db()
         self.exiting = False
 
     def start(self):
@@ -13,11 +13,11 @@ class DataLogger:
 
     def stop(self):
         self.exiting = True
-        self.csv_file.close()
+        self.db.close()
 
     def _timer_func(self):
         if not self.exiting:
             data = latestData.get()
             #print(threading.currentThread(),'DataLogger:',data)
-            self.csv_file.append(data)
+            self.db.store(data)
             threading.Timer(1, self._timer_func).start()
