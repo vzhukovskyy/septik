@@ -9,6 +9,7 @@ with open('sensors.csv') as f:
         line_number = 1
         stored_count = 0
         rejected_count = 0
+
         for line in f:
             time, cputemp, temp, press, hum, flow, level = line.strip().split(',')
 
@@ -27,6 +28,8 @@ with open('sensors.csv') as f:
             line_number += 1
             if line_number % 1000 == 0:
                 print 'line',line_number
+
         db.commit()
+
         print 'Stored', stored_count, 'rows'
         print 'Rejected', rejected_count, 'rows'

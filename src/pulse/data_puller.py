@@ -1,5 +1,5 @@
 import threading
-from hardware.simulated import sensors
+from src.sensors.sensors import get_data
 from latest_data import latestData
 
 
@@ -26,7 +26,7 @@ class DataPuller:
         self._lock.release()
 
     def _timer_func(self):
-        data = sensors.get_data()
+        data = get_data()
         latestData.set(data)
         #print(threading.currentThread(),'DataPuller:',data)
         self._schedule_next_call()

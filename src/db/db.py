@@ -10,7 +10,7 @@ class Db:
         self._open()
 
     def _open(self):
-        self.conn = sqlite3.connect('../db/db.sqlite', check_same_thread = False)
+        self.conn = sqlite3.connect('data/db.sqlite', check_same_thread = False)
         self.cursor = self.conn.cursor()
         self.cursor.execute(self.sqlStatements.create_table())
 

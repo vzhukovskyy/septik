@@ -22,7 +22,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        f = open('index.html')
+        f = open('pulse/index.html')
         content = f.read()
         #print content
         print('Returned index.html')
