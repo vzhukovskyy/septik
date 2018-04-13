@@ -42,7 +42,7 @@ class SqlStatements:
 
     def create_table(self):
         sql = """
-            CREATE TABLE {table} (
+            CREATE TABLE IF NOT EXISTS {table} (
                   {time_column_name} {time_column_type} PRIMARY KEY,
                   {cpu_temperature_column_name} {cpu_temperature_column_type},
                   {outside_temperature_column_name} {outside_temperature_column_column_type},
@@ -79,3 +79,8 @@ class SqlStatements:
             .format(table=self.table_name, \
                     time_column_name=self.time_column[0], \
                     start_time=start_time)
+
+    def delete(self):
+        return """
+            DELETE FROM {table}
+        """.format(table=self.table_name)

@@ -1,6 +1,6 @@
 import threading
 from latest_data import latestData
-from db import Db
+from db.db import Db
 
 
 class DataLogger:

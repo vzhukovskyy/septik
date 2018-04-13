@@ -1,5 +1,5 @@
 import threading
-from sensors import sensors
+from hardware.simulated import sensors
 from latest_data import latestData
 
 
