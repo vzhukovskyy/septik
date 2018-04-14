@@ -99,7 +99,7 @@
 
         function sendHttpGet() {
             var xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("GET", window.location.href+'stat');
+            xmlHttp.open("GET", window.location.href+'current');
             xmlHttp.onload = function(e) {           
                 console.log("Response to request "+this.requestId+" received at "+new Date()+", status="+this.status);
 

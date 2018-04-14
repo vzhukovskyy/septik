@@ -39,9 +39,9 @@ class Db:
     def commit(self):
         self.conn.commit()
 
-    def get_latest(self, start_time):
+    def query(self, start_time, end_time):
         with self._lock:
-            sql = self.sqlStatements.select_since(start_time)
+            sql = self.sqlStatements.select_between(start_time, end_time)
             self.cursor.execute(sql)
             records = self.cursor.fetchall()
             return records
@@ -52,3 +52,6 @@ class Db:
     def empty(self):
         self.cursor.execute(self.sqlStatements.delete())
         self.conn.commit()
+
+
+db = Db()

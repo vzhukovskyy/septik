@@ -1,3 +1,5 @@
+from datetime import datetime
+
 
 def jsonify(adict):
     s = '{'
@@ -14,3 +16,6 @@ def jsonify(adict):
         s += '"'+key+'"' + ':' + str(value)
     s += '}'
     return s
+
+def parse_datetime(s):
+    return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
