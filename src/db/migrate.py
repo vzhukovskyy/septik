@@ -12,7 +12,8 @@ def migrate(csv_file):
     with open(csv_file) as f:
         with Db() as db:
             print 'Emptying database'
-            db.empty()
+            db.drop()
+            db.create_table()
 
             line_number = 1
             stored_count = 0
@@ -39,7 +40,7 @@ def migrate(csv_file):
 
             db.commit()
 
-            print_and_rewind("Processed lines: %i\n" % line_number)
+            print_and_rewind("Added lines: %i\n" % line_number)
             print 'Stored', stored_count, 'rows'
             print 'Rejected', rejected_count, 'rows'
 

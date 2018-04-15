@@ -1,6 +1,9 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from json import JSONDecoder, JSONEncoder
 from datetime import datetime
+import dateutil.parser
+from tzlocal import get_localzone
+
 import utils
 from latest_data import latestData
 from src.db.db import db
@@ -56,19 +59,35 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
+            print data
             json = JSONEncoder().encode(data)
             self.wfile.write(json.encode('utf-8'))
 
     def return_query(self, json):
         print 'Request arrived', datetime.now()
-        # o = JSONDecoder().decode(json)
-        # time_from = utils.parse_datetime(o['from'])
-        # time_to = utils.parse_datetime(o['to'])
-        time_from = utils.parse_datetime("2018-01-01 00:00:00")
-        time_to = utils.parse_datetime("2018-01-03 00:00:00")
-        # print time_from, time_to
+        o = JSONDecoder().decode(json)
+        time_from = dateutil.parser.parse(o['from'])
+        print 'Request string', o['from']
+        print 'UTC',time_from
+        print 'As local',time_from.astimezone(get_localzone())
+        time_from = time_from.astimezone(get_localzone())
+        if 'to' in o:
+            time_to = dateutil.parser.parse(o['to'])
+        else:
+            time_to = datetime.now()
+        # time_from = utils.parse_datetime("2018-01-01 00:00:00")
+        # time_to = utils.parse_datetime("2018-01-03 00:00:00")
+        print 'From',time_from,'To',time_to
+
         records = db.query(time_from, time_to)
-        json = JSONEncoder().encode(records)
+
+        series = [[r[col] for r in records] for col in range(len(records[0]))]
+        columns = db.columns()
+        print series
+        print columns
+        data = {columns[i]:series[i] for i in range(len(columns))}
+        json = JSONEncoder().encode(data)
+
         json = json.encode('utf-8')
         print 'response length',len(json)
         self.send_response(200)

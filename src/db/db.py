@@ -12,7 +12,11 @@ class Db:
     def _open(self):
         self.conn = sqlite3.connect('data/db.sqlite', check_same_thread = False)
         self.cursor = self.conn.cursor()
-        self.cursor.execute(self.sqlStatements.create_table())
+        self.create_table()
+
+    def create_table(self):
+        with self._lock:
+            self.cursor.execute(self.sqlStatements.create_table())
 
     def __enter__(self):
         return self
@@ -25,6 +29,8 @@ class Db:
             sql, values = self.sqlStatements.insert(time=sensor_data['time'], \
                                                     cpu_temperature=sensor_data['cpu_temperature'], \
                                                     outside_temperature = sensor_data['outside_temperature'], \
+                                                    humidity=sensor_data['humidity'], \
+                                                    pressure=sensor_data['pressure'], \
                                                     flow=sensor_data['flow'], \
                                                     level=sensor_data['level'])
             try:
@@ -46,12 +52,17 @@ class Db:
             records = self.cursor.fetchall()
             return records
 
+    def columns(self):
+        return self.sqlStatements.columns()
+
     def close(self):
         self.conn.close()
 
-    def empty(self):
-        self.cursor.execute(self.sqlStatements.delete())
-        self.conn.commit()
+    def drop(self):
+        with self._lock:
+            self.cursor.execute(self.sqlStatements.delete())
+            self.cursor.execute(self.sqlStatements.drop())
+            self.conn.commit()
 
 
 db = Db()
