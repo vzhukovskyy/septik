@@ -67,11 +67,7 @@
         var chartsCreated = false;
 
         function nextDataReceived(requestId, data) {
-            console.log('Processing request '+requestId+', data '+data);
-
-            if(!chartsCreated) {
-                createCharts(data)
-            }
+            console.log('Processing request '+requestId+', data '+data.time);
 
             if(chartsCreated) {
                 extendChart('cpu_temperature', data.time, data.cpu_temperature);
@@ -89,21 +85,21 @@
         function dataReceived(requestId, data) {
             // if packets do not come in order, this will not work
             // console.log('data received '+data.toSource()+', request '+requestId);
-            nextDataReceived(requestId, data);
-            return;
+//             nextDataReceived(requestId, data);
+//             return;
 
-            // receivedUnorderedStats[requestId] = data;
+            receivedUnorderedStats[requestId] = data;
 
-            // while(requestId == lastProcessedRequestId+1) {
-            //     data = receivedUnorderedStats[requestId];
-            //     nextDataReceived(requestId, data);
-            //     delete receivedUnorderedStats[requestId];
+            while(requestId == lastProcessedRequestId+1) {
+                data = receivedUnorderedStats[requestId];
+                nextDataReceived(requestId, data);
+                delete receivedUnorderedStats[requestId];
 
-            //     lastProcessedRequestId++;
-            //     if(requestId+1 in receivedUnorderedStats) {
-            //         requestId++;
-            //     }
-            // }
+                lastProcessedRequestId++;
+                if(requestId+1 in receivedUnorderedStats) {
+                    requestId++;
+                }
+            }
         }
 
         function emptyData(time) {
@@ -122,7 +118,7 @@
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.open("GET", window.location.href+'current');
             xmlHttp.onload = function(e) {           
-                console.log("Response to request "+this.requestId+" received at "+new Date()+", status="+this.status);
+                //console.log("Response to request "+this.requestId+" received at "+new Date()+", status="+this.status);
 
                 var data;
                 if(this.status == 200) {
@@ -141,7 +137,7 @@
             xmlHttp.requestId = ++sentRequestId;
             xmlHttp.requestDate = new Date();
             xmlHttp.send(null);
-            console.log("HTTP GET request "+sentRequestId+" sent at "+new Date());
+            //console.log("HTTP GET request "+sentRequestId+" sent at "+new Date());
         }
 
         function sendHttpGetHistorical() {

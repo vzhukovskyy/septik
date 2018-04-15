@@ -3,7 +3,7 @@ import random
 
 
 def get_data():
-    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
     cpu_temp = 30+random.randint(-10, 15)
     outside_temp = 10+random.randint(-20, 25)
     pressure = 980+random.randint(0, 20)

@@ -52,6 +52,12 @@ class Db:
             records = self.cursor.fetchall()
             return records
 
+    def transpose(self, records):
+        series = [[r[col] for r in records] for col in range(len(records[0]))]
+        columns = self.columns()
+        data = {columns[i]:series[i] for i in range(len(columns))}
+        return data
+
     def columns(self):
         return self.sqlStatements.columns()
 
