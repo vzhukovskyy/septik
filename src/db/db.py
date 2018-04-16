@@ -53,8 +53,12 @@ class Db:
             return records
 
     def transpose(self, records):
-        series = [[r[col] for r in records] for col in range(len(records[0]))]
         columns = self.columns()
+
+        if len(records) == 0:
+            return {columns[i]: None for i in range(len(columns))}
+
+        series = [[r[col] for r in records] for col in range(len(records[0]))]
         data = {columns[i]:series[i] for i in range(len(columns))}
         return data
 

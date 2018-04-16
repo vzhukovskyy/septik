@@ -19,19 +19,17 @@
         }
 
         function createChart(div, title, time_series, data_series) {
-            //timestamp = data.time;
-            //timestamp -= 59*1000;
-            //x = Array(60)
-            //y = Array(60)
-            //for(var i=0 ; i<60; i++) {
-            //    x[i] = new Date(timestamp+i*1000);
-            //    y[i] = null;
-            //}
-            x = Array(time_series.length)
-            y = Array(time_series.length)
-            for(var i=0 ; i<time_series.length; i++) {
-                x[i] = new Date(time_series[i]);
-                y[i] = data_series[i];
+            if(!time_series) {
+                x = []
+                y = []
+            }
+            else {
+                x = Array(time_series.length)
+                y = Array(time_series.length)
+                for(var i=0 ; i<time_series.length; i++) {
+                    x[i] = new Date(time_series[i]);
+                    y[i] = data_series[i];
+                }
             }
             var data = [{
                 x: x,
@@ -42,26 +40,21 @@
 
             var layout = {
                 title: title,
-                //yaxis: { range: [0, 100] },
-                //xaxis: { tickmode: 'linear', tick0: new Date(timestamp), dtick: 10*1000 }
-                //xaxis: { tickmode: 'linear' }
             };
 
             Plotly.plot(div, data, layout);            
         }
 
         function createCharts(data) {
-            if(data.cpu_temperature != null) {
-                createChart('cpu_temperature', 'CPU temperature', data.time, data.cpu_temperature);
-                createChart('outside_temperature', 'Outside temperature', data.time, data.outside_temperature);
-                createChart('humidity', 'Humidity', data.time, data.humidity);
-                createChart('pressure', 'Pressure', data.time, data.pressure);
-                createChart('flow', 'Flow', data.time, data.flow);
-                createChart('level', 'Level', data.time, data.level);
+            createChart('cpu_temperature', 'CPU temperature', data.time, data.cpu_temperature);
+            createChart('outside_temperature', 'Outside temperature', data.time, data.outside_temperature);
+            createChart('humidity', 'Humidity', data.time, data.humidity);
+            createChart('pressure', 'Pressure', data.time, data.pressure);
+            createChart('flow', 'Flow', data.time, data.flow);
+            createChart('level', 'Level', data.time, data.level);
 
-                console.log('Created chart with '+data.time.length+' points');
-                chartsCreated = true;
-            }
+            console.log('Created chart with '+(data.time ? data.time.length : 0)+' points');
+            chartsCreated = true;
         }
 
         var chartsCreated = false;
@@ -83,11 +76,8 @@
         var receivedUnorderedStats = {};
 
         function dataReceived(requestId, data) {
-            // if packets do not come in order, this will not work
-            // console.log('data received '+data.toSource()+', request '+requestId);
-//             nextDataReceived(requestId, data);
-//             return;
-
+            // re-order packets
+            
             receivedUnorderedStats[requestId] = data;
 
             while(requestId == lastProcessedRequestId+1) {
@@ -108,7 +98,6 @@
 
         function parseData(time, response) {
             var data = JSON.parse(response);
-            //data.time = time;
             return data;
         }
 
