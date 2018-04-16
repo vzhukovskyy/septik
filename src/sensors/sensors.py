@@ -1,10 +1,13 @@
 import getpass
-import simulated
-import hardware
+
+
+if getpass.getuser() == 'pi':
+    import hardware
+    module = hardware
+else:
+    import simulated
+    module = simulated
 
 
 def get_data():
-    if getpass.getuser() == 'pi':
-        return hardware.get_data()
-    else:
-        return simulated.get_data()
+    return module.get_data()
