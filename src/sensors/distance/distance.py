@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 temperature = 10
 speedSound = 33100 + (0.6*temperature)
 
-def _measure_distance(gpio_trigger, gpio_echo):
+def measure_distance(gpio_trigger, gpio_echo):
     # Send 10us pulse to trigger
     GPIO.output(gpio_trigger, True)
     # Wait 10us
