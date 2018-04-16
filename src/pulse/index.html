@@ -11,11 +11,37 @@
     <div id="level"></div>
 
     <script>
+        function calculateRange(array) {
+            min = Math.floor(Math.min(...array));
+            max = Math.ceil(Math.max(...array))
+
+            if(min == max) {
+                max = min+1;
+            }
+            if(min+1 == max) {
+                var sum = 0;
+                for(var i=0; i<array.length; i++)
+                    sum = sum+array[i];
+                var avg = sum/array.length;
+
+                if(max-avg > avg-min)
+                    min = min-1;
+                else
+                    max = max+1;
+            }
+
+            return [min,max];
+        }
+
         function extendChart(div, x, y) {
             Plotly.extendTraces(div, {
                 x: [[x]],
                 y: [[y]]
             }, [0], 60);
+
+            range = calculateRange(document.getElementById(div).data[0].y);
+
+            Plotly.relayout(div, 'yaxis.range', range);
         }
 
         function createChart(div, title, time_series, data_series) {
@@ -31,6 +57,9 @@
                     y[i] = data_series[i];
                 }
             }
+
+            range = calculateRange(y);
+
             var data = [{
                 x: x,
                 y: y,
@@ -40,6 +69,11 @@
 
             var layout = {
                 title: title,
+                yaxis: {
+                    autotick: false,
+                    dtick: 1,
+                    range: range
+                }
             };
 
             Plotly.plot(div, data, layout, {staticPlot: true});
