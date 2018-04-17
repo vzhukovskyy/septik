@@ -1,11 +1,9 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from json import JSONDecoder, JSONEncoder
-from datetime import datetime
-import dateutil.parser
-from tzlocal import get_localzone
 
 from latest_data import latestData
 from src.db.db import db
+from src.utils.timeutil import timeutil
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -49,20 +47,21 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            print data
+            data['time'] = timeutil.prepare_to_json(data['time'])
             json = JSONEncoder().encode(data)
             self.wfile.write(json.encode('utf-8'))
 
     def return_query(self, json):
         o = JSONDecoder().decode(json)
-        time_from = dateutil.parser.parse(o['from']).astimezone(get_localzone())
+        time_from = timeutil.parse_incoming_query_date(o['from'])
         if 'to' in o:
-            time_to = dateutil.parser.parse(o['to']).astimezone(get_localzone())
+            time_to = timeutil.parse_incoming_query_date(o['to'])
         else:
-            time_to = datetime.now()
+            time_to = timeutil.current_query_date()
 
         records = db.query(time_from, time_to)
         data = db.transpose(records)
+        data['time'] = timeutil.prepare_array_to_json(data['time'])
 
         json = JSONEncoder().encode(data)
         json = json.encode('utf-8')
