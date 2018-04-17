@@ -29,7 +29,7 @@ def _init():
 
 
 def get_data():
-    time = timeutil.sensors_now()()
+    time = timeutil.sensors_now()
     cpu_temp = CPUTemperature().temperature
     outside_temp, pressure, humidity = readBME280All()
     flow = distance.measure_distance(gpio_trigger=FLOW_SENSOR_GPIO_TRIGGER, gpio_echo=FLOW_SENSOR_GPIO_ECHO)
