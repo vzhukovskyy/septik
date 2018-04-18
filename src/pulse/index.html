@@ -33,76 +33,81 @@
             return [min,max];
         }
 
-        function extendChart(div, x, y) {
+        function extendChart(div, x, y1, y2) {
             Plotly.extendTraces(div, {
-                x: [[x]],
-                y: [[y]]
-            }, [0], 60);
+                x: [[x],[x]],
+                y: [[y1],[y2]]
+            }, [0,1], 60);
 
             range = calculateRange(document.getElementById(div).data[0].y);
 
             Plotly.relayout(div, 'yaxis.range', range);
         }
 
-        function createChart(div, title, time_series, data_series) {
+        function createChart(div, title, time_series, data_series_raw, data_series_filtered) {
             if(!time_series) {
                 x = []
-                y = []
             }
             else {
                 x = Array(time_series.length)
-                y = Array(time_series.length)
                 for(var i=0 ; i<time_series.length; i++) {
                     x[i] = new Date(time_series[i]);
-                    y[i] = data_series[i];
                 }
             }
 
-            range = calculateRange(y);
-
-            var data = [{
+            var trace_raw = {
+                name: 'raw',
                 x: x,
-                y: y,
-                mode: 'lines',
-                line: {color: '#80CAF6'}
-            }];
+                y: data_series_raw
+            }
+
+            var trace_filtered = {
+                name: 'filtered',
+                x: x,
+                y: data_series_filtered
+            }
+
+            var data = [trace_raw, trace_filtered];
+
+            range = calculateRange(data_series_raw);
 
             var layout = {
                 title: title,
                 yaxis: {
                     autotick: false,
                     dtick: 1,
-                    range: range
+                    range: range,
+                    <!--side: 'right'-->
                 }
             };
 
             Plotly.plot(div, data, layout, {staticPlot: true});
         }
 
-        function createCharts(data) {
-            createChart('cpu_temperature', 'CPU temperature', data.time, data.cpu_temperature);
-            createChart('outside_temperature', 'Outside temperature', data.time, data.outside_temperature);
-            createChart('humidity', 'Humidity', data.time, data.humidity);
-            createChart('pressure', 'Pressure', data.time, data.pressure);
-            createChart('flow', 'Flow', data.time, data.flow);
-            createChart('level', 'Level', data.time, data.level);
+        function createCharts(data_raw, data_filtered) {
+            createChart('cpu_temperature', 'CPU temperature', data_raw.time, data_raw.cpu_temperature, data_filtered.cpu_temperature);
+            createChart('outside_temperature', 'Outside temperature', data_raw.time, data_raw.outside_temperature, data_filtered.outside_temperature);
+            createChart('humidity', 'Humidity', data_raw.time, data_raw.humidity, data_filtered.humidity);
+            createChart('pressure', 'Pressure', data_raw.time, data_raw.pressure, data_filtered.pressure);
+            createChart('flow', 'Flow', data_raw.time, data_raw.flow, data_filtered.flow);
+            createChart('level', 'Water level', data_raw.time, data_raw.level, data_filtered.level);
 
-            console.log('Created chart with '+(data.time ? data.time.length : 0)+' points');
+            //console.log('Created chart with '+(data.time ? data.time.length : 0)+' points');
             chartsCreated = true;
         }
 
         var chartsCreated = false;
 
         function nextDataReceived(requestId, data) {
-            console.log('Processing request '+requestId+', data '+data.time);
+            console.log('Processing request '+requestId+', time '+data.raw.time);
 
             if(chartsCreated) {
-                extendChart('cpu_temperature', data.time, data.cpu_temperature);
-                extendChart('outside_temperature', data.time, data.outside_temperature);
-                extendChart('humidity', data.time, data.humidity);
-                extendChart('pressure', data.time, data.pressure);
-                extendChart('flow', data.time, data.flow);
-                extendChart('level', data.time, data.level);
+                extendChart('cpu_temperature', data.raw.time, data.raw.cpu_temperature, data.filtered.cpu_temperature);
+                extendChart('outside_temperature', data.raw.time, data.raw.outside_temperature, data.filtered.outside_temperature);
+                extendChart('humidity', data.raw.time, data.raw.humidity, data.filtered.humidity);
+                extendChart('pressure', data.raw.time, data.raw.pressure, data.filtered.pressure);
+                extendChart('flow', data.raw.time, data.raw.flow, data.filtered.flow);
+                extendChart('level', data.raw.time, data.raw.level, data.filtered.level);
             }
         }
 
@@ -127,12 +132,10 @@
         }
 
         function emptyData(time) {
-            return {time: time, cpu_temperature: null, outside_temperature: null, pressure: null, humidity: null, flow: null, level: null};
-        }
-
-        function parseData(time, response) {
-            var data = JSON.parse(response);
-            return data;
+            return {
+                raw: {time: time, cpu_temperature: null, outside_temperature: null, pressure: null, humidity: null, flow: null, level: null},
+                filtered: {time: time, cpu_temperature: null, outside_temperature: null, pressure: null, humidity: null, flow: null, level: null}
+            };
         }
 
         var sentRequestId = 0;
@@ -145,7 +148,7 @@
 
                 var data;
                 if(this.status == 200) {
-                    data = parseData(this.requestDate, this.response);
+                    data = JSON.parse(this.response);
                 }
                 else {
                     data = emptyData(this.requestDate);
@@ -180,10 +183,11 @@
                 console.log("Response to historical request received at "+new Date()+", status="+this.status);
 
                 if(this.status == 200) {
-                    data = parseData(this.requestDate, this.response);
+                    data = JSON.parse(this.response);
+                    console.log(data);
                 }
                 if(!chartsCreated) {
-                    createCharts(data);
+                    createCharts(data.raw, data.filtered);
                 }
 
                 startPeriodicPulling();

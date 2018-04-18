@@ -1,6 +1,7 @@
 import threading
 from src.sensors.sensors import get_data
-from latest_data import latestData
+from latest_data import latest_data, latest_filtered_data
+from src.analyzer.filter import data_filter
 
 
 class DataPuller:
@@ -27,6 +28,11 @@ class DataPuller:
 
     def _timer_func(self):
         data = get_data()
-        latestData.set(data)
-        #print(threading.currentThread(),'DataPuller:',data)
+        filtered_data = data_filter.filter_value(data, latest_filtered_data.get())
+
+        latest_data.set(data)
+        latest_filtered_data.set(filtered_data)
+        # print 'DataPuller'
+        # print data
+        # print filtered_data
         self._schedule_next_call()

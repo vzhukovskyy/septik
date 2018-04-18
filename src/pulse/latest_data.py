@@ -20,4 +20,5 @@ class LatestData:
         self._data = s
         self._lock.release()
 
-latestData = LatestData()
+latest_data = LatestData()
+latest_filtered_data = LatestData()

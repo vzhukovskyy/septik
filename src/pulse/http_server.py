@@ -1,11 +1,12 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from json import JSONDecoder, JSONEncoder
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateutil.parser
 from tzlocal import get_localzone
 
-from latest_data import latestData
+from latest_data import latest_data, latest_filtered_data
 from src.db.db import db
+from src.analyzer.filter import data_filter
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -41,15 +42,16 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         f.close()
 
     def return_current(self):
-        data = latestData.get()
-        if data is None:
+        raw_data = latest_data.get()
+        filtered_data = latest_filtered_data.get()
+        if raw_data is None:
             self.send_response(503)
             self.end_headers()
         else:
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            print data
+            data = dict(raw=raw_data, filtered=filtered_data)
             json = JSONEncoder().encode(data)
             self.wfile.write(json.encode('utf-8'))
 
@@ -62,7 +64,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             time_to = datetime.now()
 
         records = db.query(time_from, time_to)
-        data = db.transpose(records)
+        raw_data = db.transpose(records)
+        filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())
+        data = dict(raw=raw_data, filtered=filtered_data)
 
         json = JSONEncoder().encode(data)
         json = json.encode('utf-8')
