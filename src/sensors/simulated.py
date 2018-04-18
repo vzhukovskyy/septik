@@ -1,9 +1,9 @@
-from datetime import datetime
 import random
+from src.utils.timeutil import timeutil
 
 
 def get_data():
-    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    time = timeutil.sensors_now()
     cpu_temp = 30+random.random()*2
     outside_temp = 10+random.random()*2
     pressure = 980+random.random()*5

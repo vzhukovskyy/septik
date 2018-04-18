@@ -1,12 +1,19 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from json import JSONDecoder, JSONEncoder
+<<<<<<< HEAD
 from datetime import datetime, timedelta
 import dateutil.parser
 from tzlocal import get_localzone
+=======
+>>>>>>> ed8bd7b50ae2cf5fae290f25c47a370c9e319839
 
 from latest_data import latest_data, latest_filtered_data
 from src.db.db import db
+<<<<<<< HEAD
 from src.analyzer.filter import data_filter
+=======
+from src.utils.timeutil import timeutil
+>>>>>>> ed8bd7b50ae2cf5fae290f25c47a370c9e319839
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -51,22 +58,33 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
+
+            time = timeutil.prepare_to_json(raw_data['time'])
+            raw_data['time'] = time
+            filtered_data['time'] = time
+
             data = dict(raw=raw_data, filtered=filtered_data)
+
             json = JSONEncoder().encode(data)
             self.wfile.write(json.encode('utf-8'))
 
     def return_query(self, json):
         o = JSONDecoder().decode(json)
-        time_from = dateutil.parser.parse(o['from']).astimezone(get_localzone())
+        time_from = timeutil.parse_incoming_query_date(o['from'])
         if 'to' in o:
-            time_to = dateutil.parser.parse(o['to']).astimezone(get_localzone())
+            time_to = timeutil.parse_incoming_query_date(o['to'])
         else:
-            time_to = datetime.now()
+            time_to = timeutil.current_query_date()
 
         records = db.query(time_from, time_to)
+<<<<<<< HEAD
         raw_data = db.transpose(records)
         filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())
         data = dict(raw=raw_data, filtered=filtered_data)
+=======
+        data = db.transpose(records)
+        data['time'] = timeutil.prepare_array_to_json(data['time'])
+>>>>>>> ed8bd7b50ae2cf5fae290f25c47a370c9e319839
 
         json = JSONEncoder().encode(data)
         json = json.encode('utf-8')

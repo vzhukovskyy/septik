@@ -1,8 +1,10 @@
-import time, datetime
+import time
 from gpiozero import CPUTemperature
-from bme280.bme280 import readBME280All
-import distance
 import RPi.GPIO as GPIO
+
+from bme280.bme280 import readBME280All
+from distance import distance
+from src.utils.timeutil import timeutil
 
 
 FLOW_SENSOR_GPIO_TRIGGER = 18
@@ -27,7 +29,7 @@ def _init():
 
 
 def get_data():
-    time = datetime.datetime.utcnow()
+    time = timeutil.sensors_now()
     cpu_temp = CPUTemperature().temperature
     outside_temp, pressure, humidity = readBME280All()
     flow = distance.measure_distance(gpio_trigger=FLOW_SENSOR_GPIO_TRIGGER, gpio_echo=FLOW_SENSOR_GPIO_ECHO)
