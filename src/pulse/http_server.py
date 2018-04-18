@@ -1,19 +1,10 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from json import JSONDecoder, JSONEncoder
-<<<<<<< HEAD
-from datetime import datetime, timedelta
-import dateutil.parser
-from tzlocal import get_localzone
-=======
->>>>>>> ed8bd7b50ae2cf5fae290f25c47a370c9e319839
 
 from latest_data import latest_data, latest_filtered_data
 from src.db.db import db
-<<<<<<< HEAD
-from src.analyzer.filter import data_filter
-=======
 from src.utils.timeutil import timeutil
->>>>>>> ed8bd7b50ae2cf5fae290f25c47a370c9e319839
+from src.analyzer.filter import data_filter
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -77,14 +68,10 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             time_to = timeutil.current_query_date()
 
         records = db.query(time_from, time_to)
-<<<<<<< HEAD
         raw_data = db.transpose(records)
+        raw_data['time'] = timeutil.prepare_array_to_json(raw_data['time'])
         filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())
         data = dict(raw=raw_data, filtered=filtered_data)
-=======
-        data = db.transpose(records)
-        data['time'] = timeutil.prepare_array_to_json(data['time'])
->>>>>>> ed8bd7b50ae2cf5fae290f25c47a370c9e319839
 
         json = JSONEncoder().encode(data)
         json = json.encode('utf-8')
