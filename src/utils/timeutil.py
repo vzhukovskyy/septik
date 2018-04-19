@@ -16,17 +16,17 @@ class TimeUtil:
     # request JSON contains dates as timezone unaware
     # result is in UTC since DB contains dates in UTC
     def parse_incoming_query_date(self, s):
-        dt = self._parse_tz_unaware_in_local(s)
-        return self._timezone_aware_to_utc(dt)
+        dt = self._parse_tz_unaware_in_utc(s)
+        return self._timezone_aware_to_local(dt)
 
     # when no end date specified in JSON query,
     # use current UTC time
     def current_query_date(self):
-        return self._timezone_unaware_now_in_utc()
+        return self._timezone_unaware_now_in_local()
 
     # string used in latest sensor data
     def sensors_now(self):
-        return self._timezone_unaware_now_in_utc()
+        return self._timezone_unaware_now_in_local()
 
     # used to convert time from DB to JSON response
     def prepare_to_json(self, dt):
@@ -48,6 +48,9 @@ class TimeUtil:
     def _timezone_aware_to_utc(self, dt):
         return dt.astimezone(self.utc_tz)
 
+    def _timezone_aware_to_local(self, dt):
+        return dt.astimezone(self.local_tz)
+
     def to_str(self, dt):
         return dt.strftime("%Y-%m-%d %H:%M:%S.%f")
 
@@ -57,8 +60,14 @@ class TimeUtil:
     def _timezone_unaware_now_in_utc(self):
         return datetime.utcnow()
 
+    def _timezone_unaware_now_in_local(self):
+        return datetime.now()
+
     def _parse_tz_unaware_in_local(self, s):
-        return dateutil.parser.parse(s).astimezone(get_localzone())
+        return dateutil.parser.parse(s).astimezone(self.local_tz)
+
+    def _parse_tz_unaware_in_utc(self, s):
+        return dateutil.parser.parse(s).astimezone(self.utc_tz)
 
     def _parse_tz_unaware(self, s):
         return dateutil.parser.parse(s)

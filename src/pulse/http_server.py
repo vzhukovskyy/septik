@@ -1,10 +1,10 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from json import JSONDecoder, JSONEncoder
 
 from latest_data import latest_data, latest_filtered_data
 from src.db.db import db
 from src.utils.timeutil import timeutil
 from src.analyzer.filter import data_filter
+from json_utils import toJSON, fromJSON
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -52,17 +52,13 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
 
-            time = timeutil.prepare_to_json(raw_data['time'])
-            raw_data['time'] = time
-            filtered_data['time'] = time
-
             data = dict(raw=raw_data, filtered=filtered_data)
 
-            json = JSONEncoder().encode(data)
+            json = toJSON(data)
             self.wfile.write(json.encode('utf-8'))
 
     def return_query(self, json):
-        o = JSONDecoder().decode(json)
+        o = fromJSON(json)
         time_from = timeutil.parse_incoming_query_date(o['from'])
         if 'to' in o:
             time_to = timeutil.parse_incoming_query_date(o['to'])
@@ -71,11 +67,10 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
 
         records = db.query(time_from, time_to)
         raw_data = db.transpose(records)
-        raw_data['time'] = timeutil.prepare_array_to_json(raw_data['time'])
         filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())
         data = dict(raw=raw_data, filtered=filtered_data)
 
-        json = JSONEncoder().encode(data)
+        json = toJSON(data)
         json = json.encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
