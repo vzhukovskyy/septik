@@ -18,7 +18,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         print("Request handler", self.path)
         if self.path == '/':
-            self.return_html()
+            self.return_html('src/pulse/realtime.html')
+        elif self.path == '/threedays.html':
+            self.return_html('src/pulse/threedays.html')
         elif self.path == '/current' or self.path == '/current/':
             self.return_current()
 
@@ -30,11 +32,11 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         if self.path == '/query' or self.path == '/query/':
             self.return_query(json)
 
-    def return_html(self):
+    def return_html(self, path):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        f = open('src/pulse/index.html')
+        f = open(path)
         content = f.read()
         self.wfile.write(content.encode('utf-8'))
         f.close()

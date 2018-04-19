@@ -166,7 +166,7 @@
             //console.log("HTTP GET request "+sentRequestId+" sent at "+new Date());
         }
 
-        function sendHttpGetHistorical() {
+        function sendHttpPostHistorical() {
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.open("POST", window.location.href+'query');
             xmlHttp.setRequestHeader("Content-Type", "application/json");
@@ -204,7 +204,7 @@
             }, 1000);
         }
 
-        sendHttpGetHistorical()
+        sendHttpPostHistorical()
     </script>
 </body>
 </html>

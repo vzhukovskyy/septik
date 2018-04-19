@@ -1,0 +1,82 @@
+<html>
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id="cpu_temperature"></div>
+    <div id="outside_temperature"></div>
+    <div id="humidity"></div>
+    <div id="pressure"></div>
+    <div id="flow"></div>
+    <div id="level"></div>
+<script>
+    function createChart(div, title, time_series, data_series) {
+        if(!time_series) {
+            x = []
+        }
+        else {
+            x = Array(time_series.length)
+            for(var i=0 ; i<time_series.length; i++) {
+                x[i] = new Date(time_series[i]);
+            }
+        }
+
+        var trace = {
+            x: x,
+            y: data_series
+        }
+        
+        var data = [trace];
+
+        var layout = {
+            title: title,
+        };
+
+        Plotly.plot(div, data, layout, {staticPlot: true});
+    }
+    
+    function createCharts(data) {
+        createChart('cpu_temperature', 'CPU temperature', data.time, data.cpu_temperature);
+        createChart('outside_temperature', 'Outside temperature', data.time, data.outside_temperature);
+        createChart('humidity', 'Humidity', data.time, data.humidity);
+        createChart('pressure', 'Pressure', data.time, data.pressure);
+        createChart('flow', 'Flow', data.time, data.flow);
+        createChart('level', 'Water level', data.time, data.level);
+
+        //console.log('Created chart with '+(data.time ? data.time.length : 0)+' points');
+    }
+        
+    function sendHttpRequest() {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("POST", window.location.origin+'/query');
+        xmlHttp.setRequestHeader("Content-Type", "application/json");
+    
+        var queryPeriod = new Date();
+        queryPeriod.setDate(queryPeriod.getDate()-3);
+        var data = JSON.stringify({"from": queryPeriod.toISOString()});
+    
+        xmlHttp.send(data);
+        console.log("HTTP POST 3-days request sent at "+new Date());
+    
+        xmlHttp.onload = function(e) {
+            console.log("Response to 3-days request received at "+new Date()+", status="+this.status);
+    
+            if(this.status == 200) {
+                data = JSON.parse(this.response);
+                console.log(data);
+            }
+
+            createCharts(data.filtered);
+
+        }
+        xmlHttp.onerror = function(e) {
+            console.log("ERROR for historical request received at "+new Date());
+    
+        }
+    }
+    
+    sendHttpRequest();
+
+</script>
+</body>
+</html>
