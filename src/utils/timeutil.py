@@ -26,7 +26,7 @@ class TimeUtil:
 
     # string used in latest sensor data
     def sensors_now(self):
-        return self._timezone_unaware_now_in_local()
+        return self._timezone_unaware_now_in_utc()
 
     # used to convert time from DB to JSON response
     def prepare_to_json(self, dt):
