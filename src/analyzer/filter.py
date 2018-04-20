@@ -1,11 +1,11 @@
 class DataFilter:
     def __init__(self):
         self.K = {
-            'cpu_temperature': 0.4,
+            'cpu_temperature': 0.1,
             'outside_temperature': 0.01,
             'pressure': 0.01,
             'humidity': 0.01,
-            'flow': 0.3,
+            'flow': 0.2,
             'level': 0.01
         }
 

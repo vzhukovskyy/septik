@@ -13,11 +13,11 @@ class TimeUtil:
     # INTERFACE
     #
 
-    # request JSON contains dates as timezone unaware
-    # result is in UTC since DB contains dates in UTC
+    # request is in ISO format, i.e. timezone aware. 
+    # Just for sanity convert to UTC.
     def parse_incoming_query_date(self, s):
-        dt = self._parse_tz_unaware_in_utc(s)
-        return self._timezone_aware_to_local(dt)
+        dt = self._parse_tz_aware(s)
+        return self._timezone_aware_to_utc(dt)
 
     # when no end date specified in JSON query,
     # use current UTC time
@@ -70,6 +70,9 @@ class TimeUtil:
         return dateutil.parser.parse(s).astimezone(self.utc_tz)
 
     def _parse_tz_unaware(self, s):
+        return dateutil.parser.parse(s)
+
+    def _parse_tz_aware(self, s):
         return dateutil.parser.parse(s)
 
 
