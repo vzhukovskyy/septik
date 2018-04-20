@@ -19,20 +19,21 @@ class DataFilter:
                 continue
 
             unfiltered_data = unfiltered_data_dict[sensor]
-            filtered_data = [None]*len(unfiltered_data)
+            if unfiltered_data:
+                filtered_data = [None]*len(unfiltered_data)
 
-            K = self.K[sensor]
-            if starting_kalman:
-                kalman = starting_kalman[sensor]
-            else:
-                kalman = unfiltered_data[0]
+                K = self.K[sensor]
+                if starting_kalman:
+                    kalman = starting_kalman[sensor]
+                else:
+                    kalman = unfiltered_data[0]
 
-            for i in range(len(unfiltered_data)-1,-1,-1):
-                kalman = K * unfiltered_data[i] + (1 - K) * kalman
-                filtered_data[i] = kalman
+                for i in range(len(unfiltered_data)-1,-1,-1):
+                    kalman = K * unfiltered_data[i] + (1 - K) * kalman
+                    filtered_data[i] = kalman
 
-            final_kalman[sensor] = kalman
-            filtered_data_dict[sensor] = filtered_data
+                final_kalman[sensor] = kalman
+                filtered_data_dict[sensor] = filtered_data
 
         return filtered_data_dict, final_kalman
 
