@@ -18,7 +18,7 @@ class DataLogger:
     def _timer_func(self):
         if not self.exiting:
             data = latest_data.get()
-            print datetime.now(),'- stored data from ',str(data['time'])
             if data:
+                print datetime.now(), '- stored data from ', str(data['time'])
                 db.store(data)
             threading.Timer(1, self._timer_func).start()
