@@ -43,7 +43,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
 
     def return_current(self):
         raw_data = latest_data.get()
+        raw_data['time'] = timeutil.prepare_sensors_to_json(raw_data['time'])
         filtered_data = latest_filtered_data.get()
+        filtered_data['time'] = timeutil.prepare_sensors_to_json(filtered_data['time'])
         if raw_data is None:
             self.send_response(503)
             self.end_headers()

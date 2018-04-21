@@ -22,11 +22,15 @@ class TimeUtil:
     # when no end date specified in JSON query,
     # use current UTC time
     def current_query_date(self):
-        return self._timezone_unaware_now_in_local()
+        return self._timezone_unaware_now_in_utc()
 
     # string used in latest sensor data
     def sensors_now(self):
         return self._timezone_unaware_now_in_utc()
+
+    def prepare_sensors_to_json(self, dt):
+        dt = self._timezone_unaware_in_utc_to_local(dt)
+        return self.to_str(dt)
 
     # used to convert time from DB to JSON response
     def prepare_to_json(self, dt):
