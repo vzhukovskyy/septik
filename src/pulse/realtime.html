@@ -142,7 +142,7 @@
 
         function sendHttpGetCurrent() {
             var xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("GET", window.location.href+'current');
+            xmlHttp.open("GET", window.location.origin+'/current');
             xmlHttp.onload = function(e) {           
                 //console.log("Response to request "+this.requestId+" received at "+new Date()+", status="+this.status);
 
@@ -168,7 +168,7 @@
 
         function sendHttpPostHistorical() {
             var xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("POST", window.location.href+'query');
+            xmlHttp.open("POST", window.location.origin+'/query');
             xmlHttp.setRequestHeader("Content-Type", "application/json");
 
             var queryPeriod = new Date();

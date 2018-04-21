@@ -5,6 +5,7 @@ from src.db.db import db
 from src.utils.timeutil import timeutil
 from src.analyzer.filter import data_filter
 from json_utils import toJSON, fromJSON
+from src.common.logger import logger
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -16,8 +17,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         return host
 
     def do_GET(self):
-        print("Request handler", self.path)
         if self.path == '/':
+            self.redirect('/realtime.html')
+        elif self.path == '/realtime.html':
             self.return_html('src/pulse/realtime.html')
         elif self.path == '/threedays.html':
             self.return_html('src/pulse/threedays.html')
@@ -32,7 +34,13 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         if self.path == '/query' or self.path == '/query/':
             self.return_query(json)
 
+    def redirect(self, url):
+        self.send_response(302)
+        self.send_header('Location', url)
+        self.end_headers()
+
     def return_html(self, path):
+        logger.log(logger.CLASS_HTTP, 'Incoming request for '+path)
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
@@ -40,6 +48,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         content = f.read()
         self.wfile.write(content.encode('utf-8'))
         f.close()
+        logger.log(logger.CLASS_HTTP, 'Handled request for '+path)
 
     def return_current(self):
         raw_data = latest_data.get()
@@ -61,7 +70,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
 
     def return_query(self, json):
         o = fromJSON(json)
-        print "Incoming historical request",o
+        logger.log(logger.CLASS_HTTP, "Incoming historical request "+str(o))
 
         time_from = timeutil.parse_incoming_query_date(o['from'])
         if 'to' in o:
@@ -69,9 +78,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         else:
             time_to = timeutil.current_query_date()
 
-        print "Querying DB from",time_from, "to", time_to
+        logger.log(logger.CLASS_HTTP, "Querying DB from "+str(time_from)+" to "+str(time_to))
         records = db.query(time_from, time_to)
-        print len(records),"records received from DB. Processing"
+        logger.log(logger.CLASS_HTTP, str(len(records))+" records received from DB. Processing")
         raw_data = db.transpose(records)
         filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())
         data = dict(raw=raw_data, filtered=filtered_data)
@@ -79,14 +88,13 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         json = toJSON(data)
         json = json.encode('utf-8')
 
-        print "Sending",len(json),"bytes"
+        logger.log(logger.CLASS_HTTP, "Sending "+str(len(json))+" bytes")
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', len(json))
         self.end_headers()
         self.wfile.write(json)
-
-        print "Response to historical request sent"
+        logger.log(logger.CLASS_HTTP, "Response to historical request sent")
 
 
 def run_http_server(port):

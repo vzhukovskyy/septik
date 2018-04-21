@@ -1,7 +1,7 @@
 import threading
-from datetime import datetime
 from latest_data import latest_data
 from src.db.db import db
+from src.common.logger import logger
 
 
 class DataLogger:
@@ -19,6 +19,6 @@ class DataLogger:
         if not self.exiting:
             data = latest_data.get()
             if data:
-                print datetime.now(), '- stored data in UTC as', str(data['time'])
+                logger.log(logger.CLASS_DB, 'stored data in UTC as'+str(data['time']))
                 db.store(data)
             threading.Timer(1, self._timer_func).start()
