@@ -15,8 +15,8 @@ class TimeUtil:
 
     # request is in ISO format, i.e. timezone aware. 
     # Just for sanity convert to UTC.
-    def parse_incoming_query_date(self, s):
-        dt = self._parse_tz_aware(s)
+    def parse_incoming_query_date(self, iso):
+        dt = self._parse_tz_aware(iso)
         return self._timezone_aware_to_utc(dt)
 
     # when no end date specified in JSON query,
@@ -41,6 +41,8 @@ class TimeUtil:
     def prepare_array_to_json(self, time_series):
         return [self.prepare_to_json(self._parse_tz_unaware(dt)) for dt in time_series]
 
+    def parse_db_time(self, time):
+        return self._parse_tz_unaware_in_utc(time)
     #
     # IMPLEMENTATION
     #
@@ -71,7 +73,9 @@ class TimeUtil:
         return dateutil.parser.parse(s).astimezone(self.local_tz)
 
     def _parse_tz_unaware_in_utc(self, s):
-        return dateutil.parser.parse(s).astimezone(self.utc_tz)
+        dt_naive = dateutil.parser.parse(s)
+        dt_tz_aware = pytz.utc.localize(dt_naive)
+        return dt_tz_aware
 
     def _parse_tz_unaware(self, s):
         return dateutil.parser.parse(s)
