@@ -21,6 +21,7 @@ def main(port):
 
     logger.stop()
     puller.stop()
+    aggregator.stop()
 
 
 if __name__ == "__main__":

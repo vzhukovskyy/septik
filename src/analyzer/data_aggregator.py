@@ -8,16 +8,28 @@ from src.analyzer.algorithms import calculate_average
 
 
 class DataAggregator:
+    def __init__(self):
+        self._timer = None
+        self._lock = threading.Lock()
+
     def start(self):
-        self._schedule_next_invocation(3)
+        self._schedule_next_call(3)
 
-    def _schedule_next_invocation(self, timeout):
-        now = timeutil.aggregator_now()
-        logger.log(logger.CLASS_AGGREGATOR, 'Next aggregation scheduled in {timeout} seconds, at {time}'
-                   .format(timeout=timeout, time=now+timedelta(seconds=timeout)))
+    def stop(self):
+        self._cancel_next_call()
 
-        self._timer = threading.Timer(timeout, self._timer_func)
-        self._timer.start()
+    def _schedule_next_call(self, timeout):
+        with self._lock:
+            now = timeutil.aggregator_now()
+            logger.log(logger.CLASS_AGGREGATOR, 'Next aggregation scheduled in {timeout} seconds, at {time}'
+                       .format(timeout=timeout, time=now+timedelta(seconds=timeout)))
+
+            self._timer = threading.Timer(timeout, self._timer_func)
+            self._timer.start()
+
+    def _cancel_next_call(self):
+        with self._lock:
+            self._timer.cancel()
 
     def _timer_func(self):
         self._catch_up_hours_aggregation()
@@ -26,7 +38,7 @@ class DataAggregator:
         aggregation_started_at = timeutil.aggregator_now()
         logger.log(logger.CLASS_AGGREGATOR, 'Hour aggregation started')
 
-        time_from = DataAggregator._get_start_time_of_non_aggregated_data()
+        time_from = self._get_start_time_of_non_aggregated_data()
         if time_from is None:
             logger.log(logger.CLASS_AGGREGATOR, 'Hour aggregation is up-to-date')
             return
@@ -50,12 +62,12 @@ class DataAggregator:
         if self._start_of_hour(aggregation_started_at) != self._start_of_hour(aggregation_finished_at):
             # the process was started towards the end of hour and it took so long so now there is
             # one more hour to aggregate. Do it right now
-            self._schedule_next_invocation(0)
+            self._schedule_next_call(0)
         else:
             now = timeutil.aggregator_now()
             next_hour_start = self._start_of_next_hour(now)
             timeout = next_hour_start-now
-            self._schedule_next_invocation(timeout.total_seconds())
+            self._schedule_next_call(timeout.total_seconds())
 
     @staticmethod
     def _next_period_end(period_start):
