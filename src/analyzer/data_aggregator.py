@@ -83,7 +83,7 @@ class DataAggregator:
     def aggregate(time_from, time_to):
         logger.log(logger.CLASS_AGGREGATOR,
                    'processing hour from {time_from} to {time_to}'.format(time_from=time_from, time_to=time_to))
-        data = db.select_between(time_from, time_to)
+        data = db.select_between('sensors', time_from, time_to)
         av = calculate_average(data)
         if len(av) > 0:
             db.insert('hours', av)

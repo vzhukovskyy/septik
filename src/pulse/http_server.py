@@ -78,18 +78,23 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         else:
             time_to = timeutil.current_query_date()
 
-        logger.log(logger.CLASS_HTTP, "Querying DB from "+str(time_from)+" to "+str(time_to))
-        records = db.select_between(time_from, time_to)
+        if not 'aggregation' in o:
+            table = 'sensors'
+            apply_kalman = True
+        elif o['aggregation'] == 'hours':
+            table = 'hours'
+            apply_kalman = False
+
+        logger.log(logger.CLASS_HTTP, "Querying table "+table+" from "+str(time_from)+" to "+str(time_to))
+        records = db.select_between(table, time_from, time_to)
         logger.log(logger.CLASS_HTTP, str(len(records))+" records received from DB. Processing")
-        if 'aggregation' in o and o['aggregation'] == 'hours':
-            # aggregated_records = average_hours(records)
-            # aggregated_series = db.transpose(aggregated_records)
-            # data = aggregated_series
-            pass
-        else:
-            raw_data = db.transpose(records)
+
+        raw_data = db.transpose(records)
+        if apply_kalman:
             filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())
             data = dict(raw=raw_data, filtered=filtered_data)
+        else:
+            data = raw_data
 
         json = toJSON(data)
         json = json.encode('utf-8')

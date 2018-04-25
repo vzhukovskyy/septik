@@ -66,9 +66,9 @@ class Db:
     def commit(self):
         self.conn.commit()
 
-    def select_between(self, start_time, end_time):
+    def select_between(self, table, start_time, end_time):
         with self._lock:
-            sql = self.sqlStatements.select_between(start_time, end_time)
+            sql = self.sqlStatements.select_between(table, start_time, end_time)
             self.cursor.execute(sql)
             records = self.cursor.fetchall()
             return records

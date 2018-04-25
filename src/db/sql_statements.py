@@ -56,7 +56,7 @@ class SqlStatements:
                   level FLOAT)""".format(name=table_name)
         return sql
 
-    def select_between(self, start_time, end_time):
+    def select_between(self, table, start_time, end_time):
         return """
             SELECT 
                strftime('%Y-%m-%d %H:%M:%f', time, 'localtime'), 
@@ -67,10 +67,10 @@ class SqlStatements:
                flow, 
                level
             FROM 
-                sensors 
+                {table} 
             WHERE 
                 time BETWEEN '{start_time}' AND '{end_time}'"""\
-            .format(start_time=timeutil.to_db_time(start_time), end_time=timeutil.to_db_time(end_time))
+            .format(table=table, start_time=timeutil.to_db_time(start_time), end_time=timeutil.to_db_time(end_time))
 
     def select_latest(self, table_name):
         return """
