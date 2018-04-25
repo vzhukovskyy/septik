@@ -1,8 +1,31 @@
 <html>
 <head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style type="text/css">
+        div#header {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: stretch;
+            height: 66px;
+        }
+        h2 {
+            text-align: center;
+            display: inline-block;
+        }
+        button {
+            display: block;
+            margin: 0 auto;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
+    <div id="header">
+        <div id="left"></div>
+        <div id="center"><h2>3-days data</h2></div>
+        <div id="right"><button onclick="gotoRealtime();">Go to real-time</button></div>
+    </div>
+
     <div id="cpu_temperature"></div>
     <div id="outside_temperature"></div>
     <div id="humidity"></div>
@@ -10,6 +33,10 @@
     <div id="flow"></div>
     <div id="level"></div>
 <script>
+    function gotoRealtime() {
+        location.href = location.origin + "/realtime.html";
+    }
+
     function createChart(div, title, time_series, data_series) {
         if(!time_series) {
             x = []
