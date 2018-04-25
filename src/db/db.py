@@ -16,7 +16,8 @@ class Db:
 
     def create_table(self):
         with self._lock:
-            self.cursor.execute(self.sqlStatements.create_table())
+            self.cursor.execute(self.sqlStatements.create_table('sensors'))
+            self.cursor.execute(self.sqlStatements.create_table('hours'))
 
     def __enter__(self):
         return self
@@ -24,15 +25,35 @@ class Db:
     def __exit__(self, *args):
         self.close()
 
-    def store(self, sensor_data, commit=True):
+    def store(self, table_name, sensor_data, commit=True):
         with self._lock:
-            sql, values = self.sqlStatements.insert(time=sensor_data['time'], \
+            sql, values = self.sqlStatements.insert(table=table_name,\
+                                                    time=sensor_data['time'], \
                                                     cpu_temperature=sensor_data['cpu_temperature'], \
                                                     outside_temperature = sensor_data['outside_temperature'], \
                                                     humidity=sensor_data['humidity'], \
                                                     pressure=sensor_data['pressure'], \
                                                     flow=sensor_data['flow'], \
                                                     level=sensor_data['level'])
+            try:
+                self.cursor.execute(sql, values)
+            except sqlite3.IntegrityError:
+                return False
+
+            if commit:
+               self.conn.commit()
+        return True
+
+    def insert(self, table_name, sensor_data, commit=True):
+        with self._lock:
+            sql, values = self.sqlStatements.insert(table=table_name,\
+                                                    time=sensor_data[0], \
+                                                    cpu_temperature=sensor_data[1], \
+                                                    outside_temperature = sensor_data[2], \
+                                                    humidity=sensor_data[3], \
+                                                    pressure=sensor_data[4], \
+                                                    flow=sensor_data[5], \
+                                                    level=sensor_data[6])
             try:
                 self.cursor.execute(sql, values)
             except sqlite3.IntegrityError:
@@ -50,6 +71,20 @@ class Db:
             sql = self.sqlStatements.select_between(start_time, end_time)
             self.cursor.execute(sql)
             records = self.cursor.fetchall()
+            return records
+
+    def select_latest(self, table_name):
+        with self._lock:
+            sql = self.sqlStatements.select_latest(table_name)
+            self.cursor.execute(sql)
+            records = self.cursor.fetchone()
+            return records
+
+    def select_earliest(self, table_name):
+        with self._lock:
+            sql = self.sqlStatements.select_earliest(table_name)
+            self.cursor.execute(sql)
+            records = self.cursor.fetchone()
             return records
 
     def transpose(self, records):

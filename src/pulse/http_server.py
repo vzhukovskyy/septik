@@ -6,7 +6,6 @@ from src.utils.timeutil import timeutil
 from src.analyzer.filter import data_filter
 from json_utils import toJSON, fromJSON
 from src.common.logger import logger
-from src.db.aggregator import average_hours
 
 
 class RESTRequestHandler(BaseHTTPRequestHandler):
@@ -83,9 +82,10 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         records = db.query(time_from, time_to)
         logger.log(logger.CLASS_HTTP, str(len(records))+" records received from DB. Processing")
         if 'aggregation' in o and o['aggregation'] == 'hours':
-            aggregated_records = average_hours(records)
-            aggregated_series = db.transpose(aggregated_records)
-            data = aggregated_series
+            # aggregated_records = average_hours(records)
+            # aggregated_series = db.transpose(aggregated_records)
+            # data = aggregated_series
+            pass
         else:
             raw_data = db.transpose(records)
             filtered_data, kalman = data_filter.reverse_filter_series(raw_data, latest_filtered_data.get())

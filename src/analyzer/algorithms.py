@@ -1,27 +1,14 @@
 from src.utils.timeutil import timeutil
 
-def average_hours(data):
-    hour_averages = []
 
+def calculate_average(data):
     if len(data) == 0:
-        return hour_averages
+        return data
 
-    sum, count, hour = _start_hour(data[0])
-
-    for i in range(1, len(data)):
-        record = data[i]
-        time = timeutil.parse_db_time(record[0])
-
-        if hour == time.hour:
-            _sum(sum, record)
-            count += 1
-        else:
-            average = _averages(sum, count)
-            hour_averages.append(average)
-
-            sum, count, hour = _start_hour(record)
-
-    return hour_averages
+    averages = _assign(data[0])
+    for d in data:
+        _sum(averages, d)
+    return _averages(averages, len(data))
 
 
 def _start_hour(record):
@@ -33,7 +20,7 @@ def _start_hour(record):
 
 def _assign(values):
     time = timeutil.parse_db_time(values[0])
-    time.replace(minute=0, second=0, microsecond=0)
+    time = time.replace(minute=30, second=0, microsecond=0)
 
     result = list(values)
     result[0] = time

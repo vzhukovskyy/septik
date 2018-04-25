@@ -1,9 +1,10 @@
 import sys
 import threading
 
-from data_puller import DataPuller
-from data_logger import DataLogger
-import http_server
+from src.pulse.data_puller import DataPuller
+from src.pulse.data_logger import DataLogger
+from src.analyzer.data_aggregator import DataAggregator
+import src.pulse.http_server as http_server
 
 
 def main(port):
@@ -15,6 +16,9 @@ def main(port):
 
     logger = DataLogger()
     logger.start()
+
+    aggregator = DataAggregator()
+    aggregator.start()
 
     print(threading.currentThread(),'main',threading.activeCount())
 

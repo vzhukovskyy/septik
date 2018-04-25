@@ -28,7 +28,7 @@ def migrate(csv_file):
 
                 data = dict(time=time,cpu_temperature=cputemp,outside_temperature=temp,pressure=press,humidity=hum,flow=flow,level=level)
 
-                stored = db.store(data, commit=False)
+                stored = db.store('sensors', data, commit=False)
                 if stored:
                     stored_count += 1
                 else:

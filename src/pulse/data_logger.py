@@ -20,5 +20,5 @@ class DataLogger:
             data = latest_data.get()
             if data:
                 logger.log(logger.CLASS_DB, 'stored data in UTC as'+str(data['time']))
-                db.store(data)
+                db.store('sensors', data)
             threading.Timer(1, self._timer_func).start()
