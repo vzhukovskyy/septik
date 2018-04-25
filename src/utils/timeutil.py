@@ -21,7 +21,7 @@ class TimeUtil:
     # db
 
     def current_query_date(self):
-        return self._timezone_unaware_now_in_utc()
+        return self._timezone_aware_now_in_utc()
 
     def parse_db_time(self, time):
         return self._parse_tz_unaware_in_local(time)
@@ -46,7 +46,7 @@ class TimeUtil:
     # response to browser
 
     def prepare_sensors_to_json(self, dt):
-        dt = self._timezone_unaware_in_utc_to_local(dt)
+        dt = self._timezone_aware_to_local(dt)
         return self.to_str(dt)
 
     def prepare_to_json(self, dt):
@@ -73,7 +73,10 @@ class TimeUtil:
         return dt.astimezone(self.local_tz)
 
     def _format_tz_aware_to_unaware_in_utc(self, dt):
-        dt_utc = dt.astimezone(self.utc_tz)
+        try:
+            dt_utc = dt.astimezone(self.utc_tz)
+        except:
+            pass
         return self.to_str(dt_utc)
 
     def to_str(self, dt):

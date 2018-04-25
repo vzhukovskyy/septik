@@ -79,7 +79,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             time_to = timeutil.current_query_date()
 
         logger.log(logger.CLASS_HTTP, "Querying DB from "+str(time_from)+" to "+str(time_to))
-        records = db.query(time_from, time_to)
+        records = db.select_between(time_from, time_to)
         logger.log(logger.CLASS_HTTP, str(len(records))+" records received from DB. Processing")
         if 'aggregation' in o and o['aggregation'] == 'hours':
             # aggregated_records = average_hours(records)
