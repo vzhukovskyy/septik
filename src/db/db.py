@@ -27,13 +27,13 @@ class Db:
 
     def store(self, table_name, sensor_data, commit=True):
         with self._lock:
-            sql, values = self.sqlStatements.insert(table=table_name,\
-                                                    time=sensor_data['time'], \
-                                                    cpu_temperature=sensor_data['cpu_temperature'], \
-                                                    outside_temperature = sensor_data['outside_temperature'], \
-                                                    humidity=sensor_data['humidity'], \
-                                                    pressure=sensor_data['pressure'], \
-                                                    flow=sensor_data['flow'], \
+            sql, values = self.sqlStatements.insert(table=table_name,
+                                                    time=sensor_data['time'],
+                                                    cpu_temperature=sensor_data['cpu_temperature'],
+                                                    outside_temperature=sensor_data['outside_temperature'],
+                                                    humidity=sensor_data['humidity'],
+                                                    pressure=sensor_data['pressure'],
+                                                    flow=sensor_data['flow'],
                                                     level=sensor_data['level'])
             try:
                 self.cursor.execute(sql, values)
@@ -41,18 +41,18 @@ class Db:
                 return False
 
             if commit:
-               self.conn.commit()
+                self.conn.commit()
         return True
 
     def insert(self, table_name, sensor_data, commit=True):
         with self._lock:
-            sql, values = self.sqlStatements.insert(table=table_name,\
-                                                    time=sensor_data[0], \
-                                                    cpu_temperature=sensor_data[1], \
-                                                    outside_temperature = sensor_data[2], \
-                                                    humidity=sensor_data[3], \
-                                                    pressure=sensor_data[4], \
-                                                    flow=sensor_data[5], \
+            sql, values = self.sqlStatements.insert(table=table_name,
+                                                    time=sensor_data[0],
+                                                    cpu_temperature=sensor_data[1],
+                                                    outside_temperature=sensor_data[2],
+                                                    humidity=sensor_data[3],
+                                                    pressure=sensor_data[4],
+                                                    flow=sensor_data[5],
                                                     level=sensor_data[6])
             try:
                 self.cursor.execute(sql, values)
@@ -60,7 +60,7 @@ class Db:
                 return False
 
             if commit:
-               self.conn.commit()
+                self.conn.commit()
         return True
 
     def commit(self):
@@ -105,8 +105,10 @@ class Db:
 
     def drop(self):
         with self._lock:
-            self.cursor.execute(self.sqlStatements.delete())
-            self.cursor.execute(self.sqlStatements.drop())
+            self.cursor.execute(self.sqlStatements.delete('sensors'))
+            self.cursor.execute(self.sqlStatements.delete('hours'))
+            self.cursor.execute(self.sqlStatements.drop('sensors'))
+            self.cursor.execute(self.sqlStatements.drop('hours'))
             self.conn.commit()
 
 

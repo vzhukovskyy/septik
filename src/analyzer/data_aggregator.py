@@ -1,4 +1,4 @@
-import thread
+import threading
 from datetime import timedelta
 
 from src.db.db import db
@@ -9,43 +9,66 @@ from src.analyzer.algorithms import calculate_average
 
 class DataAggregator:
     def start(self):
-        thread.start_new_thread(self.catch_up_hours_aggregation, (),)
+        self._schedule_next_invocation(3)
 
-    def queue_next_invocation(self):
-        pass #TODO
+    def _schedule_next_invocation(self, timeout):
+        now = timeutil.aggregator_now()
+        logger.log(logger.CLASS_AGGREGATOR, 'Next aggregation scheduled in {timeout} seconds, at {time}'
+                   .format(timeout=timeout, time=now+timedelta(seconds=timeout)))
 
-    def schedule_next_invocation(self):
-        pass #TODO
+        self._timer = threading.Timer(timeout, self._timer_func)
+        self._timer.start()
 
-    def catch_up_hours_aggregation(self):
-        time_from = self._get_from()
+    def _timer_func(self):
+        self._catch_up_hours_aggregation()
+
+    def _catch_up_hours_aggregation(self):
+        aggregation_started_at = timeutil.aggregator_now()
+        logger.log(logger.CLASS_AGGREGATOR, 'Hour aggregation started')
+
+        time_from = DataAggregator._get_start_time_of_non_aggregated_data()
         if time_from is None:
             logger.log(logger.CLASS_AGGREGATOR, 'Hour aggregation is up-to-date')
             return
 
-        time_from = self._start_of_next_hour(time_from)
         logger.log(logger.CLASS_AGGREGATOR, 'Starting aggregating from {time}'.format(time=time_from))
 
         now = timeutil.aggregator_now()
-        nhours = int((now-time_from).total_seconds() // 3600)
-        logger.log(logger.CLASS_AGGREGATOR, 'total hours to aggregate: {hours}'.format(hours=nhours))
         current_from = time_from
         while True:
-            current_to = current_from + timedelta(hours=1, microseconds=-1)
-            #workaround against time zone not changing when incrementing hours
-            current_to = timeutil.make_local(current_to)
+            current_to = self._next_period_end(current_from)
             if current_to > now:
                 break
 
             self.aggregate(current_from, current_to)
 
-            current_from += timedelta(hours=1)
-            # workaround against time zone not changing when incrementing hours
-            current_from = timeutil.make_local(current_from)
+            current_from = self._next_period_start(current_from)
 
         logger.log(logger.CLASS_AGGREGATOR, 'Hour aggregation complete')
 
-    def aggregate(self, time_from, time_to):
+        aggregation_finished_at = timeutil.aggregator_now()
+        if self._start_of_hour(aggregation_started_at) != self._start_of_hour(aggregation_finished_at):
+            # the process was started towards the end of hour and it took so long so now there is
+            # one more hour to aggregate. Do it right now
+            self._schedule_next_invocation(0)
+        else:
+            now = timeutil.aggregator_now()
+            next_hour_start = self._start_of_next_hour(now)
+            timeout = next_hour_start-now
+            self._schedule_next_invocation(timeout.total_seconds())
+
+    @staticmethod
+    def _next_period_end(period_start):
+        period_end = period_start + timedelta(hours=1, microseconds=-1)
+        return DataAggregator._apply_workaround(period_end)
+
+    @staticmethod
+    def _next_period_start(prev_period_start):
+        next_period_start = prev_period_start + timedelta(hours=1)
+        return DataAggregator._apply_workaround(next_period_start)
+
+    @staticmethod
+    def aggregate(time_from, time_to):
         logger.log(logger.CLASS_AGGREGATOR,
                    'processing hour from {time_from} to {time_to}'.format(time_from=time_from, time_to=time_to))
         data = db.query(time_from, time_to)
@@ -53,7 +76,8 @@ class DataAggregator:
         if len(av) > 0:
             db.insert('hours', av)
 
-    def _get_from(self):
+    @staticmethod
+    def _get_start_time_of_non_aggregated_data():
         latest = db.select_latest('hours')
         if latest is None:
             logger.log(logger.CLASS_AGGREGATOR, 'No data in hours table')
@@ -63,17 +87,26 @@ class DataAggregator:
                 return None
             else:
                 logger.log(logger.CLASS_AGGREGATOR, 'Earliest record in sensors table dated {time}'.format(time=earliest[0]))
-                return timeutil.parse_db_time(earliest[0])
+                dt = timeutil.parse_db_time(earliest[0])
+                return DataAggregator._start_of_hour(dt)
         else:
             latest = timeutil.parse_db_time(latest[0])
             logger.log(logger.CLASS_AGGREGATOR, 'Latest aggregated hour is {time}'.format(time=latest))
             now = timeutil.aggregator_now()
-            dt = now-latest
-            logger.log(logger.CLASS_AGGREGATOR, 'Diff between now and latest {delta}'.format(delta=dt))
-            if dt.total_seconds() < 3600 and latest.hour == now.hour:
+            if DataAggregator._start_of_hour(latest) == DataAggregator._start_of_hour(now):
                 return None
             else:
-                return latest
+                return DataAggregator._start_of_next_hour(latest)
 
-    def _start_of_next_hour(self, time):
-        return time.replace(minute=0, second=0, microsecond=0)+timedelta(hours=1)
+    @staticmethod
+    def _start_of_hour(time):
+        return time.replace(minute=0, second=0, microsecond=0)
+
+    @staticmethod
+    def _start_of_next_hour(time):
+        dt = time.replace(minute=0, second=0, microsecond=0)+timedelta(hours=1)
+        return DataAggregator._apply_workaround(dt)
+
+    @staticmethod
+    def _apply_workaround(time):
+        return timeutil.make_local(time)

@@ -56,6 +56,8 @@ class TimeUtil:
     def prepare_array_to_json(self, time_series):
         return [self.prepare_to_json(self._parse_tz_unaware(dt)) for dt in time_series]
 
+
+
     #
     # IMPLEMENTATION
     #

@@ -105,7 +105,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
 
 def run_http_server(port):
     http_server = HTTPServer(('', port), RESTRequestHandler)
-    print(' done.')
+    print('Started HTTP server at port %d ...' % port)
     try:
         http_server.serve_forever()
     except KeyboardInterrupt:

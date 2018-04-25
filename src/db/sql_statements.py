@@ -95,12 +95,12 @@ class SqlStatements:
             """\
             .format(name=table_name)
 
-    def delete(self):
+    def delete(self, table):
         return """
-            DELETE FROM sensors
-        """
+            DELETE FROM {table}
+        """.format(table=table)
 
-    def drop(self):
+    def drop(self, table):
         return """
-            DROP TABLE sensors
-        """
+            DROP TABLE {table}
+        """.format(table=table)

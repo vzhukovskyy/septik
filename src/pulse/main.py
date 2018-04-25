@@ -8,9 +8,6 @@ import src.pulse.http_server as http_server
 
 
 def main(port):
-    sys.stdout.write('Starting HTTP server at port %d ...' % port)
-    sys.stdout.flush()
-
     puller = DataPuller()
     puller.start()
 
@@ -19,8 +16,6 @@ def main(port):
 
     aggregator = DataAggregator()
     aggregator.start()
-
-    print(threading.currentThread(),'main',threading.activeCount())
 
     http_server.run_http_server(port)
 

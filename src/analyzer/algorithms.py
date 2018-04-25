@@ -5,17 +5,10 @@ def calculate_average(data):
     if len(data) == 0:
         return data
 
-    averages = _assign(data[0])
-    for d in data:
-        _sum(averages, d)
-    return _averages(averages, len(data))
-
-
-def _start_hour(record):
-    sum = _assign(record)
-    hour = sum[0].hour
-    count = 1
-    return sum, count, hour
+    sums = _assign(data[0])
+    for i in range(1, len(data)):
+        _sum(sums, data[i])
+    return _average(sums, len(data))
 
 
 def _assign(values):
@@ -35,10 +28,11 @@ def _sum(sums, list):
             sums[i] += list[i]
 
 
-def _averages(sums, count):
+def _average(sums, count):
     average = [None]*len(sums)
     for i in range(0, len(sums)):
         if i == 0:
+            # keep time
             average[0] = sums[0]
         else:
             average[i] = sums[i] / count

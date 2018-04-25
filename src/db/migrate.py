@@ -1,6 +1,7 @@
 import sys
 import os.path
 from db import Db
+from src.utils.timeutil import timeutil
 
 
 def print_and_rewind(s):
@@ -26,6 +27,7 @@ def migrate(csv_file):
                     #skip header and empty line
                     continue
 
+                time = timeutil.parse_db_time(time)
                 data = dict(time=time,cpu_temperature=cputemp,outside_temperature=temp,pressure=press,humidity=hum,flow=flow,level=level)
 
                 stored = db.store('sensors', data, commit=False)
