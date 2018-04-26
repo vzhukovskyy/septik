@@ -20,9 +20,11 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         if self.path == '/':
             self.redirect('/realtime.html')
         elif self.path == '/realtime.html':
-            self.return_html('src/pulse/realtime.html')
-        elif self.path == '/threedays.html':
-            self.return_html('src/pulse/threedays.html')
+            self.return_html('src/web/realtime.html')
+        elif self.path == '/hourly.html':
+            self.return_html('src/web/hourly.html')
+        elif self.path == '/daily.html':
+            self.return_html('src/web/daily.html')
         elif self.path == '/current' or self.path == '/current/':
             self.return_current()
 
@@ -83,6 +85,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
             apply_kalman = True
         elif o['aggregation'] == 'hours':
             table = 'hours'
+            apply_kalman = False
+        elif o['aggregation'] == 'days':
+            table = 'days'
             apply_kalman = False
 
         logger.log(logger.CLASS_HTTP, "Querying table "+table+" from "+str(time_from)+" to "+str(time_to))

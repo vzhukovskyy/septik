@@ -2,15 +2,11 @@
 <head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style type="text/css">
-        div#header {
+        div#buttonrow {
             display: flex;
             justify-content: space-evenly;
             align-items: stretch;
-            height: 66px;
-        }
-        h2 {
-            text-align: center;
-            display: inline-block;
+            height: 40px;
         }
         button {
             display: block;
@@ -20,10 +16,10 @@
     </style>
 </head>
 <body>
-    <div id="header">
-        <div id="left"></div>
-        <div id="center"><h2>Real-time data</h2></div>
-        <div id="right"><button onclick="gotoHistorical();">Go to historical</button></div>
+    <div id="buttonrow">
+        <div><button onclick="goto('realtime.html')">Real-time</button></div>
+        <div><button onclick="goto('hourly.html')">Hourly</button></div>
+        <div><button onclick="goto('daily.html')">Daily</button></div>
     </div>
 
     <div id="cpu_temperature"></div>
@@ -34,8 +30,8 @@
     <div id="level"></div>
 
     <script>
-        function gotoHistorical() {
-            location.href = location.origin + "/threedays.html";
+        function goto(page) {
+            location.href = location.origin + "/" + page;
         }
 
         function calculateRange(array) {
