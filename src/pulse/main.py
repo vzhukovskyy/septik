@@ -1,9 +1,8 @@
 import sys
-import threading
 
 from src.pulse.data_puller import DataPuller
 from src.pulse.data_logger import DataLogger
-from src.analyzer.data_aggregator import DataAggregator
+from src.aggregator.aggregator import Aggregator
 import src.pulse.http_server as http_server
 
 
@@ -14,7 +13,7 @@ def main(port):
     logger = DataLogger()
     logger.start()
 
-    aggregator = DataAggregator()
+    aggregator = Aggregator()
     aggregator.start()
 
     http_server.run_http_server(port)

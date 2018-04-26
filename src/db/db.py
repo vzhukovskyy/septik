@@ -18,6 +18,7 @@ class Db:
         with self._lock:
             self.cursor.execute(self.sqlStatements.create_table('sensors'))
             self.cursor.execute(self.sqlStatements.create_table('hours'))
+            self.cursor.execute(self.sqlStatements.create_table('days'))
 
     def __enter__(self):
         return self

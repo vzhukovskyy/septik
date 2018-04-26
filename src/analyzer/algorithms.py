@@ -12,12 +12,7 @@ def calculate_average(data):
 
 
 def _assign(values):
-    time = timeutil.parse_db_time(values[0])
-    time = time.replace(minute=30, second=0, microsecond=0)
-
-    result = list(values)
-    result[0] = time
-    return result
+    return list(values)
 
 
 def _sum(sums, list):

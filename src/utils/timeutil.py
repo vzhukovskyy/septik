@@ -1,7 +1,8 @@
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 from tzlocal import get_localzone
 import dateutil.parser
+
 
 
 class TimeUtil:
@@ -34,8 +35,26 @@ class TimeUtil:
     def aggregator_now(self):
         return self._timezone_aware_now_in_local()
 
-    def make_local(self, dt):
+    def start_of_hour(self, time):
+        dt = time.replace(minute=0, second=0, microsecond=0)
+        return self.apply_workaround(dt)
+
+    def start_of_next_hour(self, time):
+        dt = time.replace(minute=0, second=0, microsecond=0)+timedelta(hours=1)
+        return self.apply_workaround(dt)
+
+    def start_of_day(self, time):
+        dt = time.replace(hour=0, minute=0, second=0, microsecond=0)
+        return self.apply_workaround(dt)
+
+    def start_of_next_day(self, time):
+        dt = time.replace(hour=0, minute=0, second=0, microsecond=0)+timedelta(days=1)
+        return self.apply_workaround(dt)
+
+    def apply_workaround(self, dt):
+        # when incrementing datetime with timedelta, time zone does not update. This is workaround for this
         return self._timezone_aware_to_local(dt)
+
 
     # incoming request from browser
 
