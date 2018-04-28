@@ -13,13 +13,17 @@
             margin: 0 auto;
             height: 100%;
         }
+        span {
+            font-size: 35px;
+            vertical-alignment: middle;
+        }
     </style>
 </head>
 <body>
     <div id="buttonrow">
         <div><button onclick="goto('realtime.html')">Real-time</button></div>
         <div><button onclick="goto('hourly.html')">Hourly</button></div>
-        <div><button onclick="goto('daily.html')">Daily</button></div>
+        <div><span>Daily</span></div>
     </div>
 
     <div id="cpu_temperature"></div>
