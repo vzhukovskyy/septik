@@ -16,6 +16,9 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         #return socket.getfqdn(host)
         return host
 
+    def log_message(self, format, *args):
+        return
+            
     def do_GET(self):
         if self.path == '/':
             self.redirect('/realtime.html')
@@ -42,7 +45,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def return_html(self, path):
-        logger.log(logger.CLASS_HTTP, 'Incoming request for '+path)
+        logger.log(logger.CLASS_HTTP, 'Incoming request for %s from %s' % (path, self.address_string()))
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
@@ -72,7 +75,7 @@ class RESTRequestHandler(BaseHTTPRequestHandler):
 
     def return_query(self, json):
         o = fromJSON(json)
-        logger.log(logger.CLASS_HTTP, "Incoming historical request "+str(o))
+        logger.log(logger.CLASS_HTTP, "Incoming historical request %s from %s" % (str(o), self.address_string()))
 
         time_from = timeutil.parse_incoming_query_date(o['from'])
         if 'to' in o:
